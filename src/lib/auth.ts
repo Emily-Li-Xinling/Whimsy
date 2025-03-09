@@ -9,7 +9,7 @@ import {
   signInWithPopup
 } from 'firebase/auth';
 
-// 登录函数
+// login
 export const login = async (email: string, password: string) => {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -25,7 +25,7 @@ export const login = async (email: string, password: string) => {
   }
 };
 
-// 注册函数
+// register
 export const register = async (email: string, password: string) => {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -41,7 +41,7 @@ export const register = async (email: string, password: string) => {
   }
 };
 
-// 登出函数
+// logout
 export const logout = async () => {
   try {
     await signOut(auth);
@@ -51,12 +51,12 @@ export const logout = async () => {
   }
 };
 
-// 监听用户状态变化
+// listen to user state change
 export const onAuthStateChange = (callback: (user: User | null) => void) => {
   return onAuthStateChanged(auth, callback);
 };
 
-// Google 登录
+// Google login
 export const loginWithGoogle = async () => {
   try {
     const provider = new GoogleAuthProvider();
