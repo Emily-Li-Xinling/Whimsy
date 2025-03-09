@@ -1,101 +1,108 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import {
+  DndContext,
+  useDraggable,
+  useDroppable,
+  DragEndEvent,
+} from "@dnd-kit/core";
+
+import { DiaryInput } from "@/components/ui/diary-input";    
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [selectedText, setSelectedText] = useState(""); // selecte
+  const [inputValue, setInputValue] = useState("");     // input 
+  const [droppedText, setDroppedText] = useState<string[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  // listener text selection
+  const handleTextSelection = () => {
+    const selection = window.getSelection();
+    if (selection && selection.toString().trim()) {
+        setSelectedText(selection.toString().trim());
+    }
+  };
+
+  // Draggable Block
+  function DraggableBlock({ text }: { text: string }) {
+    const { attributes, listeners, setNodeRef } = useDraggable({ id: "text-block" });
+
+    return (
+        <div
+            ref={setNodeRef}
+            {...attributes}
+            {...listeners}
+            className="p-2 bg-blue-100 border border-blue-400 cursor-grab"
+        >
+            {text}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+    );
+}
+
+  // Droppable area
+  function DroppableInput() {
+    const { setNodeRef, isOver } = useDroppable({ id: "input-area" });
+
+    return (
+        <DiaryInput
+            ref={setNodeRef}
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            className={`${isOver ? "bg-green-100" : ""}`}
+            placeholder="拖拽文本到这里"
+        />
+    );
+}
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (active.id === "text-block" && over?.id === "input-area") {
+        setInputValue((prev) => prev + (prev ? " " : "") + selectedText);
+    }
+  };
+
+  return (
+    <main className="min-h-screen p-8">
+      <Sheet>
+        <SheetTrigger asChild>
+          <Button>打开日记</Button>
+        </SheetTrigger>
+        <SheetContent>
+          <SheetHeader>
+            <SheetTitle>我的日记</SheetTitle>
+            <SheetDescription>
+              在这里记录你的想法
+            </SheetDescription>
+          </SheetHeader>
+          <DndContext onDragEnd={handleDragEnd}>
+            {/* 文字区域 */}
+            <div
+                onMouseUp={handleTextSelection} 
+                className="p-4 border rounded-lg bg-gray-100"
+            >
+                请选中这段文字，然后尝试拖拽。  
+                <br /> 
+                这是一个可以拖拽的文字块，请选中它并拖拽到下方的输入框中。 
+            </div>
+
+            {/* Droppable 输入框 */}
+            <div className="mt-4">
+                <DroppableInput />
+            </div>
+          </DndContext>
+        </SheetContent>
+      </Sheet>
+    </main>
   );
 }
