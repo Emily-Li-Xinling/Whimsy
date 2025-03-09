@@ -46,20 +46,20 @@ export function LoginForm() {
           onClick={() => setMode('email')}
           className={`px-4 py-2 rounded-t-lg ${mode === 'email' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
         >
-          邮箱登录
+          Email Login
         </button>
         <button
           type="button"
           onClick={() => setMode('register')}
           className={`px-4 py-2 rounded-t-lg ${mode === 'register' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
         >
-          注册
+          Register
         </button>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-1">邮箱</label>
+          <label className="block text-sm font-medium mb-1">Email</label>
           <input
             type="email"
             value={email}
@@ -69,7 +69,7 @@ export function LoginForm() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">密码</label>
+          <label className="block text-sm font-medium mb-1">Password</label>
           <input
             type="password"
             value={password}
@@ -88,7 +88,7 @@ export function LoginForm() {
           disabled={isLoading}
           className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 disabled:opacity-50"
         >
-          {isLoading ? '处理中...' : mode === 'email' ? '登录' : '注册'}
+          {isLoading ? 'Processing...' : mode === 'email' ? 'Login' : 'Register'}
         </button>
 
         {mode === 'email' && (
@@ -97,7 +97,7 @@ export function LoginForm() {
             onClick={handleGoogleLogin}
             className="w-full mt-2 bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-50"
           >
-            使用 Google 账号登录
+            Login with Google
           </button>
         )}
       </form>
