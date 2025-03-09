@@ -5,12 +5,12 @@ import { cn } from "@/lib/utils"
 import { Textarea } from "./textarea"
 
 export interface DiaryInputProps
-  extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'autoSave' | 'value' | 'defaultValue'> {
+  extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'autoSave'> {
   onSave?: (content: string) => void
   autoSave?: boolean
-  autoSaveInterval?: number // in milliseconds
+  autoSaveInterval?: number
   initialValue?: string
-  savingIndicatorTimeout?: number // in milliseconds
+  savingIndicatorTimeout?: number
 }
 
 const DiaryInput = React.forwardRef<HTMLTextAreaElement, DiaryInputProps>(
@@ -22,46 +22,52 @@ const DiaryInput = React.forwardRef<HTMLTextAreaElement, DiaryInputProps>(
       autoSaveInterval = 3000,
       initialValue = "",
       savingIndicatorTimeout = 1000,
+      value,
+      onChange,
       ...props
     },
     ref
   ) => {
-    const [content, setContent] = React.useState(initialValue)
+    const [content, setContent] = React.useState(() => initialValue)
     const [isSaving, setIsSaving] = React.useState(false)
     const previousContent = React.useRef(initialValue)
     const savingTimer = React.useRef<ReturnType<typeof setTimeout>>()
 
     // Handle content changes
     const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      setContent(e.target.value)
+      if (onChange) {
+        onChange(e);
+      } else {
+        setContent(e.target.value)
+      }
     }
+
+    // Use controlled value if provided
+    const currentValue = value !== undefined ? String(value) : content;
 
     // Save content
     const saveContent = React.useCallback(() => {
-      if (!onSave || content === previousContent.current) return
+      if (!onSave || currentValue === previousContent.current) return
 
       setIsSaving(true)
-      onSave(content)
-      previousContent.current = content
+      onSave(currentValue)
+      previousContent.current = currentValue
 
-      // Clear previous timer if exists
       if (savingTimer.current) {
         clearTimeout(savingTimer.current)
       }
 
-      // Set new timer for saving indicator
       savingTimer.current = setTimeout(() => {
         setIsSaving(false)
-      }, savingIndicatorTimeout)
-    }, [content, onSave, savingIndicatorTimeout])
+      }, Number(savingIndicatorTimeout))
+    }, [currentValue, onSave, savingIndicatorTimeout])
 
-    // Auto-save functionality
     React.useEffect(() => {
       if (!autoSave) return
 
       const timer = setTimeout(() => {
         saveContent()
-      }, autoSaveInterval)
+      }, Number(autoSaveInterval))
 
       return () => {
         clearTimeout(timer)
@@ -69,9 +75,8 @@ const DiaryInput = React.forwardRef<HTMLTextAreaElement, DiaryInputProps>(
           clearTimeout(savingTimer.current)
         }
       }
-    }, [content, autoSave, autoSaveInterval, saveContent])
+    }, [currentValue, autoSave, autoSaveInterval, saveContent])
 
-    // Cleanup on unmount
     React.useEffect(() => {
       return () => {
         if (savingTimer.current) {
@@ -91,14 +96,14 @@ const DiaryInput = React.forwardRef<HTMLTextAreaElement, DiaryInputProps>(
             "placeholder:text-muted-foreground/50",
             className
           )}
-          value={content}
+          value={currentValue}
           onChange={handleContentChange}
-          placeholder="What happened today? Write down your thoughts..."
+          placeholder="在这里输入或拖拽文本..."
           {...props}
         />
         {isSaving && (
           <div className="text-muted-foreground absolute bottom-2 right-2 text-sm">
-            Saving...
+            保存中...
           </div>
         )}
       </div>
